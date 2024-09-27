@@ -1,0 +1,79 @@
+/* Общий стиль для навбара */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Стили для лого слева (CABINET TINAO) */
+.leftSection {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+}
+
+.logoLeft {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #333;
+    text-decoration: none;
+    padding-right: 40px;
+    font-family: inherit; /* Оставляем шрифт по умолчанию */
+}
+
+/* Центр навбара */
+.centerSection {
+    display: flex;
+    gap: 40px;
+}
+
+/* Стили и эффекты для ссылок */
+.link {
+    font-size: 1em;
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.3s ease, transform 0.2s ease;
+    font-family: 'Roboto', sans-serif; /* Применяем новый шрифт к ссылкам */
+    padding: 10px 10px; /* Увеличиваем поля для наведения */
+}
+
+/* Эффекты при наведении и клике */
+.link:hover {
+    color: #ff5733;
+    transform: scale(1.05); /* Небольшое увеличение при наведении */
+}
+
+.link:active {
+    color: #e74c3c; /* Цвет при нажатии */
+    transform: scale(0.95); /* Небольшое уменьшение при нажатии */
+}
+
+/* Стили для правой части навбара */
+.rightSection {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logoRight {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #333;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    font-family: 'Roboto', sans-serif; /* Применяем новый шрифт */
+}
+
+/* Эффекты для логотипа справа */
+.logoRight:hover {
+    color: #ff5733;
+}
+
+/* Профиль */
+.profileIcon {
+    display: flex;
+    align-items: center;
+}
