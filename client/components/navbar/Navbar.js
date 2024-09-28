@@ -30,9 +30,9 @@ export default function Navbar() {
             </div>
             {/* Логотип справа и иконка профиля */}
             <div className={styles.rightSection}>
-                <Link href="/amv" className={styles.logoRight}>
+                <a  className={styles.logoRight}>
                     АМВ
-                </Link>
+                </a>
                 <Link href="/profile" className={styles.link}>
                     {/* Здесь можно добавить иконку профиля */}
                     Профиль

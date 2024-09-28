@@ -21,7 +21,6 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// Маршрут для загрузки и обработки файлов
 app.post('/upload', upload.single('file'), (req, res) => {
     if (!req.file) {
         return res.status(400).send('No file uploaded.');
@@ -30,64 +29,84 @@ app.post('/upload', upload.single('file'), (req, res) => {
     const uploadedFilePath = req.file.path;
     const pythonScriptPath = path.join(__dirname, '../storage/scripts/process_file.py');
 
-    // Запуск Python-скрипта
+    // Запускаем Python-процесс
     const pythonProcess = spawn('python', [pythonScriptPath, uploadedFilePath]);
 
-    // Обработка вывода Python-скрипта
+    // Инициализируем переменные для хранения вывода
+    let stdoutData = '';
+    let stderrData = '';
+
+    // Обрабатываем stdout
     pythonProcess.stdout.on('data', (data) => {
-        console.log(`Python output: ${data.toString()}`);  // Логируем вывод Python
-        const processedFilePath = data.toString().trim();
-
-        if (!processedFilePath) {
-            return res.status(500).send('No processed file path returned.');
-        }
-
-        // Возвращаем клиенту путь для скачивания файла
-        res.json({ downloadUrl: `/download/${path.basename(processedFilePath)}` });
+        stdoutData += data.toString();
     });
 
-    // Обработка ошибок, если они есть
+    // Обрабатываем stderr
     pythonProcess.stderr.on('data', (data) => {
-        console.error(`Error from Python script: ${data.toString()}`);
-        res.status(500).send('Error processing file.');
+        stderrData += data.toString();
     });
 
+    // Ожидаем завершения процесса
     pythonProcess.on('close', (code) => {
         if (code !== 0) {
-            console.error(`Python process exited with code ${code}`);
-            res.status(500).send('Python script error.');
+            console.error(`Python процесс завершился с кодом ${code}`);
+            res.status(500).send('Ошибка скрипта Python.');
+            return;
         }
+
+        // Отправляем объединенный вывод
+        const fullOutput = stdoutData + stderrData;
+        console.log('Вывод Python:', fullOutput.trim());
+
+        // Обработка вывода для извлечения URL скачивания
+        const processedFilePath = fullOutput.trim();
+        if (!processedFilePath) {
+            return res.status(500).send('Не найден путь к обработанному файлу.');
+        }
+
+        // Возвращаем URL скачивания клиенту
+        res.json({ downloadUrl: `/download/${path.basename(processedFilePath)}` });
     });
 });
 
-const fs = require('fs');
+const fs = require('fs').promises; // Используем промисы для асинхронных операций с файловой системой
 
 // Маршрут для скачивания обработанного файла
-app.get('/download/:filename', (req, res) => {
+app.get('/download/:filename', async (req, res) => {
     const filename = req.params.filename;
     const filePath = path.join(__dirname, '../storage/processed/', filename);
 
-    console.log(`Download file path: ${filePath}`); // Лог для проверки пути
+    console.log(`Download file path: ${filePath}`);
 
-    // Определяем расширение файла
-    const extension = path.extname(filename);
+    try {
+        // Проверяем существование файла
+        await fs.access(filePath);
 
-    // Устанавливаем MIME-тип в зависимости от расширения
-    let mimeType = 'application/octet-stream';  // По умолчанию - бинарные данные
-    if (extension === '.txt') {
-        mimeType = 'text/plain';
-    } else if (extension === '.pdf') {
-        mimeType = 'application/pdf';
-    }
+        // Определяем расширение файла
+        const extension = path.extname(filename);
 
-    res.setHeader('Content-Type', mimeType);
-    res.download(filePath, filename, (err) => {
-        if (err) {
-            console.error(`Error downloading file: ${err}`);
-            res.status(404).send('File not found.');
+        // Устанавливаем MIME-тип в зависимости от расширения
+        let mimeType = 'application/octet-stream';  // По умолчанию - бинарные данные
+        if (extension === '.txt') {
+            mimeType = 'text/plain';
+        } else if (extension === '.pdf') {
+            mimeType = 'application/pdf';
         }
-    });
+
+        res.setHeader('Content-Type', mimeType);
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+        // Читаем содержимое файла
+        const fileBuffer = await fs.readFile(filePath);
+
+        // Отправляем файл клиенту
+        res.send(fileBuffer);
+    } catch (error) {
+        console.error(`Error reading or sending file: ${error.message}`);
+        res.status(404).send('File not found or could not be read.');
+    }
 });
+
 
 // Запуск сервера
 app.listen(port, () => {

@@ -1,0 +1,87 @@
+/* profile.module.css */
+
+.container {
+    background-color: #eaeaea;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
+}
+
+.content {
+    background-color: #fff;
+    padding: 30px 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+    border: 1px solid #ccc;
+    margin-top: 20px;
+}
+
+.heading {
+    font-size: 26px;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 20px;
+}
+
+.subheading {
+    font-size: 16px;
+    color: #444;
+    margin-bottom: 25px;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.formGroup {
+    margin-bottom: 15px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.input {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.inputFile {
+    margin-top: 10px;
+}
+
+.editButton,
+.saveButton {
+    background-color: #444;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 4px;
+    margin-top: 15px;
+}
+
+.editButton:hover,
+.saveButton:hover {
+    background-color: #222;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}

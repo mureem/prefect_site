@@ -1,16 +1,23 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/navbar/Navbar';
+import styles from './presentations.module.css';
 
-export default function Presentations() {
+const PresentationUpload = () => {
     const [file, setFile] = useState(null);
     const [downloadUrl, setDownloadUrl] = useState('');
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [isUploading, setIsUploading] = useState(false);
 
     const handleFileChange = (event) => {
-        setFile(event.target.files[0]); // Сохраняем выбранный файл
+        setFile(event.target.files[0]);
     };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        if (!file) return;
+
+        setIsUploading(true);
+        setUploadProgress(10);
         const formData = new FormData();
         formData.append('file', file);
 
@@ -20,38 +27,67 @@ export default function Presentations() {
                 body: formData,
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                console.log('File uploaded successfully:', data);
-                setDownloadUrl(data.downloadUrl);  // Сохраняем ссылку на скачивание
-                console.log('Download URL:', data.downloadUrl);  // Логируем
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Ошибка при загрузке файла:', errorText);
+                alert('Произошла ошибка при загрузке файла');
+                return;
+            }
+
+            const data = await response.json();
+            console.log('Файл загружен успешно:', data);
+
+            // Проверяем корректность downloadUrl
+            if (data.downloadUrl && typeof data.downloadUrl === 'string') {
+                setDownloadUrl(data.downloadUrl);
+                setUploadProgress(100);
+                alert('Файл успешно загружен!');
             } else {
-                const errorText = await response.text(); // Получаем текст ошибки
-                console.error('File upload failed:', errorText);
+                throw new Error('Некорректный downloadUrl');
             }
         } catch (error) {
-            console.error('Error uploading file:', error);
+            console.error('Ошибка при загрузке файла:', error);
+            alert('Произошла ошибка при загрузке файла');
+        } finally {
+            setIsUploading(false);
         }
     };
 
+    useEffect(() => {
+        if (file) {
+            document.title = `Загрузка презентации (${Math.floor((uploadProgress || 0) / 10)}%)`;
+        }
+    }, [file, uploadProgress]);
+
     return (
-        <div>
+        <div className={styles.container}>
             <Navbar />
-            <h1>Добро пожаловать на страницу презентаций!</h1>
+            <h1>Загрузка презентации</h1>
             <form onSubmit={handleSubmit}>
-                <input type="file" onChange={handleFileChange} required />
-                <button type="submit">Загрузить файл</button>
+                <input
+                    type="file"
+                    onChange={handleFileChange}
+                    required
+                    accept=".ppt,.pptx,.pdf"
+                />
+                <button type="submit" disabled={!file}>{isUploading ? 'Загрузка...' : 'Загрузить файл'}</button>
             </form>
 
-            {/* Отображаем ссылку на скачивание, если она доступна */}
-            {downloadUrl && (
-                <div>
-                    {/* Измените здесь, чтобы включить полный URL */}
-                    <a href={`http://localhost:3001${downloadUrl}`} download>
+            {downloadUrl && typeof downloadUrl === 'string' && (
+                <div className={styles.downloadLink}>
+                    <a href={`${process.env.REACT_APP_API_URL}${downloadUrl}`} download>
                         Скачать обработанный файл
                     </a>
                 </div>
             )}
+
+            {uploadProgress > 0 && (
+                <div className={styles.progressBar}>
+                    <span style={{ width: `${uploadProgress}%` }}>{uploadProgress}%</span>
+                </div>
+            )}
         </div>
     );
-}
+};
+
+export default PresentationUpload;
